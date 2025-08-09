@@ -39,22 +39,23 @@ function displayZ(z) {
 }
 
 function render(graph) {
-    graph.nodes.sort((a, b) => a.aparentCoordinates.z - b.aparentCoordinates.z).forEach(n => {
+    graph.nodes.sort((a, b) => a.aparentCoordinates.z - b.aparentCoordinates.z);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const n of graph.nodes) {
+        // FIXME: this call place all the nodes at the same position
+        //n.updateCoordinates(rotationCoeffs);
+
         if (n.color == "black") {
             console.log(n.aparentCoordinates.x,n.aparentCoordinates.y,n.aparentCoordinates.z)
         }
-        ctx.beginPath()
-        ctx.arc(displayX(n.aparentCoordinates.x),displayY(n.aparentCoordinates.y),displayZ(n.aparentCoordinates.z),0,2*Math.PI)
-        ctx.fillStyle = "white"
-        ctx.fill()
-        ctx.stroke()
-        n.updateCoordinates(rotationCoeffs)
+
         ctx.beginPath()
         ctx.arc(displayX(n.aparentCoordinates.x),displayY(n.aparentCoordinates.y),displayZ(n.aparentCoordinates.z),0,2*Math.PI)
         ctx.fillStyle = n.color//["grey","red","blue","green","black","yellow","cyan","magenta","pink","purple","seal"].at(n.value%12)
         ctx.fill()
-        ctx.stroke()
-    })
+    }
 }
 
 let oldPos = [0, 0];
