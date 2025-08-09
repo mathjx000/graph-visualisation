@@ -2,12 +2,13 @@ const LINE_COLOR = "#cdcdcd"
 
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext("2d")
-ctx.strokeStyle = "white"
-ctx.clearRect(0, 0, canvas.width, canvas.height)
-ctx.moveTo(0,0)
+
+const world2CanvasMatrix = new DOMMatrix()
+    .translateSelf(canvas.width / 2, canvas.height / 2, 0)
+    // .scaleSelf(1, 1, 1);
 
 var graph = new Graph()
-var rotationCoeffs = new Coordinates(0,0,0)
+let rotationMatrix = new DOMMatrix();
 new Node(graph,0,"black",[],new Coordinates(-200,-200,200))
 new Node(graph,0,"red",[],new Coordinates(-200,200,200))
 new Node(graph,0,"green",[],new Coordinates(200,-200,200))
@@ -28,31 +29,25 @@ function class_of(obj) {
     return obj.constructor.name
 }
 
-function displayX(x) {
-    return x + (canvas.width/2)
-}
-function displayY(y) {
-    return y + (canvas.height/2)
-}
-function displayZ(z) {
-    return Math.exp((z + 500)/1000) * 20
-}
-
 function render(graph) {
+    const transform = world2CanvasMatrix.multiply(rotationMatrix);
+
+    for (const n of graph.nodes) {
+        n.aparentCoordinates = transform.transformPoint(n.absoluteCoordinates.toDOM());
+    }
     graph.nodes.sort((a, b) => a.aparentCoordinates.z - b.aparentCoordinates.z);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const n of graph.nodes) {
-        // FIXME: this call place all the nodes at the same position
-        //n.updateCoordinates(rotationCoeffs);
-
-        if (n.color == "black") {
-            console.log(n.aparentCoordinates.x,n.aparentCoordinates.y,n.aparentCoordinates.z)
-        }
-
         ctx.beginPath()
-        ctx.arc(displayX(n.aparentCoordinates.x),displayY(n.aparentCoordinates.y),displayZ(n.aparentCoordinates.z),0,2*Math.PI)
+        ctx.arc(
+            n.aparentCoordinates.x,
+            n.aparentCoordinates.y,
+            Math.exp((n.aparentCoordinates.z + 500) / 1000) * 20,
+            0,
+            2 * Math.PI
+        );
         ctx.fillStyle = n.color//["grey","red","blue","green","black","yellow","cyan","magenta","pink","purple","seal"].at(n.value%12)
         ctx.fill()
     }
@@ -86,13 +81,10 @@ canvas.addEventListener("pointermove", (event) => {
     oldPos = newPos
     newPos = [event.x, event.y]
     const diff = [newPos[0] - oldPos[0], newPos[1] - oldPos[1]]
-    if (diff[0]) {
-        diffX = diff[0] / 200
-        diffY = diff[1] / 200
-        coefDiffX = rotationCoeffs.x + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.y) * Math.sin(rotationCoeffs.z), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.y) * Math.cos(rotationCoeffs.z), 2))
-        coefDiffY = rotationCoeffs.y + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.x) * Math.cos(rotationCoeffs.z), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.z), 2))
-        coefDiffZ = rotationCoeffs.z + Math.sqrt(Math.pow(diffX * Math.sin(rotationCoeffs.x) * Math.cos(rotationCoeffs.y), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.y), 2))
-        rotationCoeffs = new Coordinates(coefDiffX, coefDiffY, coefDiffZ)
-        render(graph)
-    }
+
+    const rotation = new DOMMatrix();
+    rotation.rotateSelf(-diff[1] / 10, diff[0] / 10, 0);
+    rotationMatrix.preMultiplySelf(rotation);
+
+    render(graph)
 }, false);

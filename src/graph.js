@@ -10,10 +10,11 @@ class Graph {
 
 class Node {
     /**
-     * 
      * @param {Graph} parent
      * @param {number} value
+     * @param {string} color
      * @param {number[]} nbs
+     * @param {Coordinates} coords
      */
     constructor(parent, value, color, nbs, coords) {
         parent.addChild(this)
@@ -21,14 +22,6 @@ class Node {
         this.color = color
         this.nbs = nbs
         this.absoluteCoordinates = coords //new Coordinates(Math.floor(Math.random() * 500),Math.floor(Math.random() * 500),Math.floor(Math.random() * 250))
-        this.aparentCoordinates = this.absoluteCoordinates.copy()
-    }
-
-    /**
-     * 
-     * @param {Coordinates} rotationFactor 
-     */
-    updateCoordinates(rotationFactor) {
-        this.aparentCoordinates = this.absoluteCoordinates.multiply(rotationFactor)
+        this.aparentCoordinates = this.absoluteCoordinates.toDOM();
     }
 }
