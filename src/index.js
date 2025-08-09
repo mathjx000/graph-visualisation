@@ -57,36 +57,41 @@ function render(graph) {
     })
 }
 
-var oldPos = [0,0]
-var newPos = [0,0]
-canvas.onmousedown = function(event) {
-    newPos = (event.x,event.y)
+let oldPos = [0, 0];
+let newPos = [0, 0];
+let activePointerId = null;
 
-    function onMouseMove(event) {
-        oldPos = newPos
-        newPos = [event.x, event.y]
-        const diff = [newPos[0]-oldPos[0],newPos[1]-oldPos[1]]
-        if (diff[0]) {
-            diffX = diff[0]/200
-            diffY = diff[1]/200
-            coefDiffX = rotationCoeffs.x + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.y) * Math.sin(rotationCoeffs.z),2) + Math.pow(diffY * Math.cos(rotationCoeffs.y) * Math.cos(rotationCoeffs.z),2))
-            coefDiffY = rotationCoeffs.y + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.x) * Math.cos(rotationCoeffs.z),2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.z),2))
-            coefDiffZ = rotationCoeffs.z + Math.sqrt(Math.pow(diffX * Math.sin(rotationCoeffs.x) * Math.cos(rotationCoeffs.y),2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.y),2))
-            rotationCoeffs = new Coordinates(coefDiffX,coefDiffY,coefDiffZ)
-            render(graph)
-        }
-    }
+canvas.addEventListener("pointerdown", (event) => {
+    if (activePointerId !== null) return;
 
-    document.addEventListener('mousemove', onMouseMove)
+    canvas.setPointerCapture(activePointerId = event.pointerId);
 
-    canvas.onmouseleave = function() {
-        document.removeEventListener('mousemove', onMouseMove)
-        canvas.onmouseleave = null
-        canvas.onmouseup = null
+    newPos = [event.x, event.y];
+}, false);
+
+canvas.addEventListener("pointerup", (event) => {
+    if (activePointerId !== event.pointerId) return;
+    activePointerId = null;
+}, false);
+
+canvas.addEventListener("pointercancel", (event) => {
+    if (activePointerId !== event.pointerId) return;
+    activePointerId = null;
+}, false);
+
+canvas.addEventListener("pointermove", (event) => {
+    if (activePointerId !== event.pointerId) return;
+
+    oldPos = newPos
+    newPos = [event.x, event.y]
+    const diff = [newPos[0] - oldPos[0], newPos[1] - oldPos[1]]
+    if (diff[0]) {
+        diffX = diff[0] / 200
+        diffY = diff[1] / 200
+        coefDiffX = rotationCoeffs.x + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.y) * Math.sin(rotationCoeffs.z), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.y) * Math.cos(rotationCoeffs.z), 2))
+        coefDiffY = rotationCoeffs.y + Math.sqrt(Math.pow(diffX * Math.cos(rotationCoeffs.x) * Math.cos(rotationCoeffs.z), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.z), 2))
+        coefDiffZ = rotationCoeffs.z + Math.sqrt(Math.pow(diffX * Math.sin(rotationCoeffs.x) * Math.cos(rotationCoeffs.y), 2) + Math.pow(diffY * Math.cos(rotationCoeffs.x) * Math.sin(rotationCoeffs.y), 2))
+        rotationCoeffs = new Coordinates(coefDiffX, coefDiffY, coefDiffZ)
+        render(graph)
     }
-    canvas.onmouseup = function() {
-        document.removeEventListener('mousemove', onMouseMove)
-        canvas.onmouseup = null
-        canvas.onmouseleave = null
-    }
-}
+}, false);
